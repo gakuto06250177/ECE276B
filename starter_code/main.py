@@ -114,7 +114,16 @@ def runtest(mapfile, start, goal, verbose = True):
   # TODO: You should verify whether the path actually intersects any of the obstacles in continuous space
   # TODO: You can implement your own algorithm or use an existing library for segment and 
   #       axis-aligned bounding box (AABB) intersection
+  
   collision = False
+  for i in range(path.shape[0]-1):
+    for block in blocks:
+      if Planner.segment_block_collision(path[i], path[i+1], block):
+        collision = True
+        break
+    if collision:
+      break
+    
   goal_reached = sum((path[-1]-goal)**2) <= 0.1
   success = (not collision) and goal_reached
   pathlength = np.sum(np.sqrt(np.sum(np.diff(path,axis=0)**2,axis=1)))
