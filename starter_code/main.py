@@ -84,9 +84,14 @@ def runtest(mapfile, start, goal, verbose = True):
   # Load a map and instantiate a motion planner
   boundary, blocks = load_map(mapfile)
   
-  # Part 1
-  MP = Planner.MyPlanner(boundary, blocks) # TODO: replace this with your own planner implementation
+  # MP = Planner.MyPlanner(boundary, blocks) # TODO: replace this with your own planner implementation
   
+  # Part 1 sampling-based Planner
+  # MP = Planner.MyPart1SamplingPlanner(boundary, blocks)
+
+  # Part 1 AABB
+  MP = Planner.MyPart1AABBPlanner(boundary, blocks)
+
   # Part 2: A* Planner
   # MP = Planner.MyAStarPlanner(boundary, blocks)
   
