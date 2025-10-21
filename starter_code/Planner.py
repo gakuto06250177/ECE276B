@@ -1,6 +1,6 @@
 import numpy as np
 
-def intersects_aabb(p1, p2, block):
+def segment_block_collision(p1, p2, block):
   
   d = p2 - p1
 
@@ -107,9 +107,18 @@ class MyPart1SamplingPlanner(MyPlanner):
       for k in range(numofdirs):
         start_point = path[-1]
         next_vertical = dR[:,k]
-
-        for t in np.linspace(0,1,10):
+        
+        step = 0.1
+        for t in np.arange(step,1.0+step,step):
           next = start_point + t*next_vertical
+          collision = False
+          for block in self.blocks:
+            if segment_block_collision(start_point, next, block):
+              collision = True
+              break
+            
+          if collision:
+            continue
 
           if not self.is_valid_point(next):
             continue
@@ -149,19 +158,23 @@ class MyPart1AABBPlanner(MyPlanner):
       node = None
       for k in range(numofdirs):
         next = path[-1] + dR[:,k]
-        
+        collision = False
+
         for block in self.blocks:
-
-          if intersects_aabb(path[-1], next, block):
-            next = path[-1] + dR[:,k]
-
-          if not self.is_valid_point(next):
-            continue
+          if segment_block_collision(path[-1], next, block):
+            collision = True
+            break
           
-          disttogoal = sum((next - goal)**2)
-          if( disttogoal < mindisttogoal):
-            mindisttogoal = disttogoal
-            node = next
+        if collision:
+          continue
+          
+        if not self.is_valid_point(next):
+          continue
+          
+        disttogoal = sum((next - goal)**2)
+        if( disttogoal < mindisttogoal):
+          mindisttogoal = disttogoal
+          node = next
       
       if node is None:
         break
