@@ -51,14 +51,21 @@ class MyPlanner:
 
   def is_valid_point(self, point):
     return self.is_inside_boundary(point) and not self.is_point_in_collision(point)
-
-  def plan(self,start,goal):
-    path = [start]
-    numofdirs = 26
+  
+  def _directional_vectors(self, step=None):
     [dX,dY,dZ] = np.meshgrid([-1,0,1],[-1,0,1],[-1,0,1])
     dR = np.vstack((dX.flatten(),dY.flatten(),dZ.flatten()))
     dR = np.delete(dR,13,axis=1)
-    dR = dR / np.sqrt(np.sum(dR**2,axis=0)) / 2.0
+    if step is None:
+      step = 0.5
+    norms = np.sqrt(np.sum(dR**2,axis=0))
+    dR = dR / norms * step
+    return dR
+    
+  def plan(self,start,goal):
+    path = [start]
+    dR = self._directional_vectors()
+    numofdirs = dR.shape[1]
     
     for _ in range(2000):
       mindisttogoal = 1000000
@@ -89,17 +96,12 @@ class MyPart1SamplingPlanner(MyPlanner):
   __slots__ = ['boundary', 'blocks']
 
   def __init__(self, boundary, blocks):
-    self.boundary = boundary
-    self.blocks = blocks
+    super().__init__(boundary, blocks)
 
   def plan(self, start, goal):
     path = [start]
-    numofdirs = 26
-    
-    [dX,dY,dZ] = np.meshgrid([-1,0,1],[-1,0,1],[-1,0,1])
-    dR = np.vstack((dX.flatten(),dY.flatten(),dZ.flatten()))
-    dR = np.delete(dR,13,axis=1)
-    dR = dR / np.sqrt(np.sum(dR**2,axis=0)) / 2.0
+    dR = self._directional_vectors()
+    numofdirs = dR.shape[1]
     
     for _ in range(2000):
       mindisttogoal = 1000000
@@ -142,16 +144,12 @@ class MyPart1AABBPlanner(MyPlanner):
   __slots__ = ['boundary', 'blocks']
 
   def __init__(self, boundary, blocks):
-    self.boundary = boundary
-    self.blocks = blocks
+    super().__init__(boundary, blocks)
 
   def plan(self,start,goal):
     path = [start]
-    numofdirs = 26
-    [dX,dY,dZ] = np.meshgrid([-1,0,1],[-1,0,1],[-1,0,1])
-    dR = np.vstack((dX.flatten(),dY.flatten(),dZ.flatten()))
-    dR = np.delete(dR,13,axis=1)
-    dR = dR / np.sqrt(np.sum(dR**2,axis=0)) / 2.0
+    dR = self._directional_vectors(step=1.0)
+    numofdirs = dR.shape[1]
     
     for _ in range(2000):
       mindisttogoal = 1000000
