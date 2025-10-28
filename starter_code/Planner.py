@@ -1,5 +1,7 @@
 import numpy as np
 
+from astar import AStar
+
 def segment_block_collision(p1, p2, block):
   
   d = p2 - p1
@@ -187,34 +189,56 @@ class MyPart1AABBPlanner(MyPlanner):
   
 # Part 2: A* Planner
 class MyAStarPlanner(MyPlanner):
-  __slots__ = ['boundary', 'blocks']
+  __slots__ = ['boundary', 'blocks', 'goal', 'step_size']
 
-  def __init__(self, boundary, blocks):
-    self.boundary = boundary
-    self.blocks = blocks
-    # ここに、衝突判定やヒューリスティック計算に必要な情報を
-    # AStarクラスに渡せるように準備しておくと良い
-  
+  def __init__(self, boundary, blocks, step_size=0.275):
+    super().__init__(boundary, blocks)
+    self.goal = None
+    self.step_size = step_size
+    
+  def _directional_vectors(self, step=None):
+    if step is None:
+      step = self.step_size
+    dirs = np.array(np.meshgrid([-1, 0, 1],
+                                [-1, 0, 1],
+                                [-1, 0, 1])).reshape(3,-1)
+    dirs = np.delete(dirs,13,axis=1)
+    return dirs * step
+
   def plan(self, start, goal):
-    # astar.py に実装したA*のロジックを呼び出す
-    # 'self' を environmentとして渡すことで、AStarクラス内で
-    # 衝突判定などのメソッドが使えるようになる
-    path_coords = AStar.plan(start, goal, self) 
+    self.goal = goal
+    path_coords = AStar.plan(start, goal, self)
     
     return np.array(path_coords)
 
-  # AStarクラスから呼び出されるヘルパー関数をここに実装
   def getHeuristic(self, coord):
-      # ゴールまでのユークリッド距離などを計算
-      pass
+    if self.goal is None:
+        raise ValueError("Goal is not set. Call plan(start, goal) before querying the heuristic.")
+    return np.linalg.norm(np.asarray(coord) - np.asarray(self.goal))
   
   def getNeighbors(self, coord):
-      # 現在地から移動可能な近隣ノードのリストを返す
-      pass
+    neighbors = []
+    dirs = self._directional_vectors(self.step_size)
+    coord = np.asarray(coord)
+    for i in range(dirs.shape[1]):
+      transition_cost = np.linalg.norm(dirs[:,i])
+      neighbor = (coord + dirs[:,i], transition_cost)
+      neighbors.append(neighbor)
+    return neighbors
 
   def checkCollision(self, p1, p2):
-      # Part 1 で実装した衝突判定関数
-      pass
+    for block in self.blocks:
+        if segment_block_collision(np.asarray(p1), np.asarray(p2), block):
+            return True
+    return False
+
+  def isValidPoint(self, point):
+    
+    return self.is_valid_point(np.asarray(point))
+
+  def coord_to_key(self, coord):
+    
+    return tuple(np.round(np.asarray(coord) / self.step_size).astype(int))
 
 # Part 3: RRT Planner (将来的に追加)
 class MyRRTPlanner:

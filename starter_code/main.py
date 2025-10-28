@@ -90,10 +90,10 @@ def runtest(mapfile, start, goal, verbose = True):
   # MP = Planner.MyPart1SamplingPlanner(boundary, blocks)
 
   # Part 1 AABB
-  MP = Planner.MyPart1AABBPlanner(boundary, blocks)
+  # MP = Planner.MyPart1AABBPlanner(boundary, blocks)
 
   # Part 2: A* Planner
-  # MP = Planner.MyAStarPlanner(boundary, blocks)
+  MP = Planner.MyAStarPlanner(boundary, blocks)
   
   # Part 3: RRT Planner
   # MP = Planner.MyRRTPlanner(boundary, blocks)
